@@ -21,4 +21,4 @@ Per questo ultimo caso, un produttore non può aggiungere una string quando la s
 
 Il vostro server deve potere accettare più connessione di clienti allo stesso momento, deve proteggere l’accesso concorrente alla struttura FIFO e deve fare in modo che quando un cliente aspetta, il thread associato non è in attesa attiva.
 
-Dovete anche programmare dei clienti per testare il comportamento del vostro server è puo essere una buona idea, provare ad usare i clienti/server di altri gruppi di studenti.
+Dovete anche programmare dei clienti per testare il comportamento del vostro server è puo essere una buona idea, provare ad usare i clienti/server di altri gruppi di studenti. 
