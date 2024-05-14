@@ -2,7 +2,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-public class UnlimitedFIFOServer {
+public class UnlimitedServer {
     private static LinkedList<String> fifo = new LinkedList<>();
 
     public static void main(String[] args) throws IOException {
@@ -36,16 +36,19 @@ public class UnlimitedFIFOServer {
                 if (message.equals("producer")) {
                     out.println("okprod\n");
                     String data = in.readLine();
-                    fifo.add(data);
+                    synchronized (fifo) {
+                        fifo.add(data);
+                        fifo.notifyAll(); // Sveglia i consumatori in attesa
+                    }
                 } else if (message.equals("consumer")) {
                     out.println("okcons\n");
-                    if (fifo.isEmpty()) {
-                        out.println("wait");
+                    String data;
+                    synchronized (fifo) {
                         while (fifo.isEmpty()) {
-                            Thread.sleep(100);
+                            fifo.wait(); // Aspetta se la coda è vuota
                         }
+                        data = fifo.removeFirst();
                     }
-                    String data = fifo.removeFirst();
                     out.println(data);
                 }
 
