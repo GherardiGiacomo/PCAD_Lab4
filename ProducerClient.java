@@ -1,3 +1,5 @@
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
@@ -9,9 +11,13 @@ public class ProducerClient {
         try {
             Socket socket = new Socket(SERVER_ADDRESS, PORT);
             PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
             writer.println("producer");
-            writer.println("Stringa da inviare al server");
+            String response = reader.readLine();
+            System.out.println("Risposta dal server: " + response);
+
+            writer.println("producer\n");
 
             socket.close();
         } catch (Exception e) {

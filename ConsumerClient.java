@@ -12,13 +12,13 @@ public class ConsumerClient {
             Socket socket = new Socket(SERVER_ADDRESS, PORT);
             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-            // Invia il tipo di client al server
             PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
             writer.println("consumer");
 
-            // Ricevi la stringa dal server
             String response = reader.readLine();
-            System.out.println("Stringa ricevuta dal server: " + response);
+            System.out.println("Risposta dal server: " + response);
+
+            writer.println("consumer\n");
 
             socket.close();
         } catch (Exception e) {

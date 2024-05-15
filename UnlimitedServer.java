@@ -1,18 +1,22 @@
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.io.IOException;
 
 public class UnlimitedServer {
-    private static LinkedList<String> fifo = new LinkedList<>();
+    private static ArrayList<String> fifo = new ArrayList<>();
 
-    public static void main(String[] args) throws IOException {
-        int port = 12345;
-        ServerSocket serverSocket = new ServerSocket(port);
-        System.out.println("Server started on port " + port);
-
-        while (true) {
-            Socket clientSocket = serverSocket.accept();
-            new Thread(new ClientHandler(clientSocket)).start();
+    public static void main(String[] args) {
+        try (ServerSocket serverSocket = new ServerSocket(777)) {
+            System.out.println("Server connesso alla porta 777.\nIn attesa di un messaggio da un client:");
+            while (true) {
+                new Thread(new ClientHandler(serverSocket.accept())).start();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -36,29 +40,44 @@ public class UnlimitedServer {
                 if (message.equals("producer")) {
                     out.println("okprod\n");
                     String data = in.readLine();
-                    synchronized (fifo) {
-                        fifo.add(data);
-                        fifo.notifyAll(); // Sveglia i consumatori in attesa
+                    if (data != null) {
+                        System.out.println("Dati ricevuti dal client: " + data);
+                        synchronized (fifo) {
+                            fifo.add(data);
+                            fifo.notifyAll();
+                        }
+                    } else {
+                        System.out.println("Nessun dato ricevuto dal client.");
                     }
                 } else if (message.equals("consumer")) {
                     out.println("okcons\n");
-                    String data;
-                    synchronized (fifo) {
-                        while (fifo.isEmpty()) {
-                            fifo.wait(); // Aspetta se la coda è vuota
+                    String data = in.readLine();
+                    if (data != null) {
+                        System.out.println("Dati ricevuti dal client: " + data);
+                        synchronized (fifo) {
+                            while (fifo.isEmpty()) {
+                                try {
+                                    fifo.wait();
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            data = fifo.remove(0);
+                            out.println(data);
                         }
-                        data = fifo.removeFirst();
+                    } else {
+                        System.out.println("Nessun dato ricevuto dal client.");
                     }
-                    out.println(data);
                 }
-
-            } catch (IOException | InterruptedException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             } finally {
-                try {
-                    clientSocket.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                if (clientSocket != null) {
+                    try {
+                        clientSocket.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }
