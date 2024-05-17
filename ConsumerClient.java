@@ -14,6 +14,7 @@ public class ConsumerClient {
 
             PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
             writer.println("consumer");
+            writer.flush(); //aggiunto dal prof
 
             String response = reader.readLine();
             System.out.println("Risposta dal server: " + response);
