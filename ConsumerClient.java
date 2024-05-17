@@ -10,9 +10,9 @@ public class ConsumerClient {
     public static void main(String[] args) {
         try {
             Socket socket = new Socket(SERVER_ADDRESS, PORT);
+            PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-            PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
             writer.println("consumer");
             writer.flush();
 

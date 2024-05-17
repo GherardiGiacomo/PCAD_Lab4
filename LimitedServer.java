@@ -4,6 +4,8 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class LimitedServer {
     private static final int PORT = 777;
@@ -16,45 +18,52 @@ public class LimitedServer {
             System.out.println("Server connesso sulla porta " + PORT);
 
             queue = new ArrayBlockingQueue<>(MAX_CONNECTIONS);
+            System.out.println("Il numero massimo di connessioni è settato a: "+ MAX_CONNECTIONS);
+
+            ExecutorService executor = Executors.newFixedThreadPool(MAX_CONNECTIONS);
 
             while (true) {
                 Socket clientSocket = serverSocket.accept();
 
-                BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+                executor.submit(() -> {
+                    try {
+                        BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                        PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
 
-                String clientType = in.readLine();
+                        String clientType = in.readLine();
 
-                if (clientType.equals("producer")) {
-                    out.println("okprod");
-                    String message = in.readLine();
-                    System.out.println("Messaggio ricevuto dal client: " + message);
-                    synchronized (lock) {
-                        while (queue.size() == MAX_CONNECTIONS) {
-                            System.out.println("Coda piena, produttore in attesa");
-                            lock.wait();
+                        if (clientType.equals("producer")) {
+                            out.println("okprod");
+                            String message = in.readLine();
+                            System.out.println("Messaggio ricevuto dal client: " + message);
+                            synchronized (lock) {
+                                while (queue.size() == MAX_CONNECTIONS) {
+                                    System.out.println("Coda piena, produttore in attesa");
+                                    lock.wait();
+                                }
+                                queue.put(message);
+                                lock.notifyAll();
+                            }
+                        } else if (clientType.equals("consumer")) {
+                            out.println("okcons");
+                            synchronized (lock) {
+                                while (queue.isEmpty()) {
+                                    System.out.println("Coda vuota");
+                                    System.out.println("Server bloccato");
+                                    lock.wait();
+                                }
+                                queue.take();
+                                String message = in.readLine();
+                                System.out.println("Messaggio ricevuto dal client: " + message);
+                                lock.notifyAll();
+                            }
                         }
-                        queue.put(message);
-                        System.out.println("Numero attuale di messaggi nella coda: " + queue.size());
-                        lock.notifyAll();
-                    }
-                } else if (clientType.equals("consumer")) {
-                    out.println("okcons");
-                    String message = in.readLine();
-                    synchronized (lock) {
-                        while (queue.isEmpty()) {
-                            System.out.println("Coda vuota");
-                            System.out.println("Server bloccato");
-                            lock.wait();
-                        }
-                        System.out.println("Messaggio ricevuto dal client: " + message);
-                        queue.take();
-                        System.out.println("Numero attuale di messaggi nella coda: " + queue.size());
-                        lock.notifyAll();
-                    }
-                }
 
-                clientSocket.close();
+                        clientSocket.close();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
             }
         } catch (Exception e) {
             e.printStackTrace();

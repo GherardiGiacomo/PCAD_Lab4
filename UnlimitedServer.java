@@ -30,7 +30,6 @@ public class UnlimitedServer {
                     System.out.println("Messaggio ricevuto dal client: " + message);
                     synchronized (lock) {
                         queue.put(message);
-                        System.out.println("Numero attuale di messaggi nella coda: " + queue.size());
                         lock.notifyAll();
                     }
                 } else if (clientType.equals("consumer")) {
@@ -44,7 +43,6 @@ public class UnlimitedServer {
                         queue.take();
                         String message = in.readLine();
                         System.out.println("Messaggio ricevuto dal client: " + message);
-                        System.out.println("Numero attuale di messaggi nella coda: " + queue.size());
                         lock.notifyAll();
                     }
                 }
