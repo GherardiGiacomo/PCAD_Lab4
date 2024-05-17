@@ -7,7 +7,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 
 public class LimitedServer {
     private static final int PORT = 777;
-    private static final int MAX_CONNECTIONS = 5; // dimensione max di connessioni num messo a caso
+    private static final int MAX_CONNECTIONS = 5; // dimensione max di connessioni
     private static ArrayBlockingQueue<String> queue;
     private static final Object lock = new Object();
 
@@ -24,18 +24,17 @@ public class LimitedServer {
                 PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
 
                 String clientType = in.readLine();
-                // System.out.println("Tipo di client: " + clientType);
 
                 if (clientType.equals("producer")) {
                     out.println("okprod");
                     String message = in.readLine();
-                    System.out.println("Messaggio da producer: " + message);
+                    System.out.println("Messaggio ricevuto dal client: " + message);
                     synchronized (lock) {
                         while (queue.size() == MAX_CONNECTIONS) {
                             System.out.println("Coda piena, produttore in attesa");
                             lock.wait();
                         }
-                        queue.put(message); // se coda piena, si blocca
+                        queue.put(message);
                         System.out.println("Numero attuale di messaggi nella coda: " + queue.size());
                         lock.notifyAll();
                     }
@@ -48,7 +47,7 @@ public class LimitedServer {
                             System.out.println("Server bloccato");
                             lock.wait();
                         }
-                        System.out.println("Messaggio da consumer: " + message);
+                        System.out.println("Messaggio ricevuto dal client: " + message);
                         queue.take();
                         System.out.println("Numero attuale di messaggi nella coda: " + queue.size());
                         lock.notifyAll();
@@ -58,7 +57,6 @@ public class LimitedServer {
                 clientSocket.close();
             }
         } catch (Exception e) {
-            // System.err.println("nulla di buono è successo");
             e.printStackTrace();
         }
     }

@@ -14,13 +14,12 @@ public class ProducerClient {
             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
             writer.println("producer");
-            writer.flush(); //aggiunto dal prof
+            writer.flush();
 
             String response = reader.readLine();
             System.out.println("Risposta dal server: " + response);
 
             writer.println("producer\n");
-            //writer.flush();
 
             socket.close();
         } catch (Exception e) {
